@@ -87,7 +87,7 @@ void benchmark(HNSWConfig config){
     }
 
     // search kNN and evaluation
-    if (query.shape[0] > 0)
+    if (!config.query_path.empty() && query.shape[0] > 0)
     {
         int64_t num_queries = query.shape[0];
         alg_hnsw->setEf(config.ef);
