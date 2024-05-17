@@ -16,9 +16,9 @@ mkdir -p $dataset_dir
 
 # BIGANN/SIFT 1B
 mkdir -p $dataset_dir/bigann && pushd $dataset_dir/bigann
-# aria2c -x 16 -j 16 -c -o base.1B.u8bin       https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/base.1B.u8bin
-aria2c -x 16 -j 16 -c -o learn.100M.u8bin      https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/learn.100M.u8bin
-aria2c -x 16 -j 16 -c -o query.10k.u8bin      https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/query.public.10K.u8bin
+aria2c -x 16 -j 16 -c -o base.1B.u8bin       https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/base.1B.u8bin
+# aria2c -x 16 -j 16 -c -o learn.100M.u8bin      https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/learn.100M.u8bin
+# aria2c -x 16 -j 16 -c -o query.10k.u8bin      https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/bigann/query.public.10K.u8bin
 
 # SpaceV
 # git clone --recurse-submodules https://github.com/microsoft/SPTAG
@@ -36,12 +36,12 @@ aria2c -x 16 -j 16 -c -o query.10k.u8bin      https://dl.fbaipublicfiles.com/bil
 # aria2c -x 16 -j 16 -c -o query.100K.fbin       https://storage.yandexcloud.net/yandex-research/ann-datasets/T2I/query.public.100K.fbin
 
 # Ground Truth
-mkdir -p $dataset_dir/gt && pushd $dataset_dir/gt
-aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_10M_v2.tgz
-aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_100M_v2.tgz
-aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_1B_v2.tgz
+# mkdir -p $dataset_dir/gt && pushd $dataset_dir/gt
+# aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_10M_v2.tgz
+# aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_100M_v2.tgz
+# aria2c -x 16 -j 16 -c https://dl.fbaipublicfiles.com/billion-scale-ann-benchmarks/GT_1B_v2.tgz
 
-tar -xvzf GT_10M_v2.tgz
-tar -xvzf GT_100M_v2.tgz
-tar -xvzf GT_1B_v2.tgz
-rm *.tgz
+# tar -xvzf GT_10M_v2.tgz
+# tar -xvzf GT_100M_v2.tgz
+# tar -xvzf GT_1B_v2.tgz
+# rm *.tgz

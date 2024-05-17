@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(melee)
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 find_package(spdlog REQUIRED)
 find_package(TBB REQUIRED)
 
 include_directories(include)
-
 add_subdirectory(third_party/hnswlib)
 
 add_executable(main src/hnsw_main.cc)

@@ -13,3 +13,5 @@ build
 cmake-build-*
 **build
 data/datasets
+.idea
+.vscode

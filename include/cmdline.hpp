@@ -24,7 +24,7 @@ namespace melee {
         std::string profile_out;
     };
 
-    HNSWConfig parse_hnsw_config(int argc, char *argv[]) {
+    HNSWConfig get_hnsw_config(int argc, char *argv[]) {
         HNSWConfig config;
         argparse::ArgumentParser program("HNSW profiler");
         program.add_argument("--space").help("one of l2, ip, or l2uint8").required();

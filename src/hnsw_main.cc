@@ -1,19 +1,22 @@
-#include "hnswlib/hnswlib.h"
-#include "spdlog/spdlog.h"
-#include "utils.hpp"
+#include <hnswlib/hnswlib.h>
+#include <spdlog/spdlog.h>
 #include <numeric>
-#include <span>
 #include <oneapi/tbb/global_control.h>
 #include <oneapi/tbb/info.h>
 #include <oneapi/tbb/parallel_for.h>
 
+#include "cmdline.hpp"
+#include "timer.hpp"
+#include "dataloader.hpp"
+#include "span.hpp"
 using namespace melee;
 template<typename space_t, typename dist_t>
 void benchmark(HNSWConfig config){
     typedef std::priority_queue<std::pair<dist_t, hnswlib::labeltype>> ResultType;
 
-    std:: feat, query, truth;
-    feat = cnpy::npy_load(config.feat_path);
+    // TODO feat, query, truth;
+    Matrix2D feat, query, truth;
+    feat = loadMatrix(config.feat_path);
     config.max_elements = feat.shape[0];
     config.dim = feat.shape[1];
     
@@ -24,7 +27,7 @@ void benchmark(HNSWConfig config){
 
     if (!config.query_path.empty())
     {
-        query = cnpy::npy_load(config.query_path);
+        query = loadMatrix(config.query_path);
         if (feat.shape[1] != query.shape[1]) {
             spdlog::error("feature dimension {} and query dimension {} doesn't match", feat.shape[1], query.shape[1]);
             exit(-1);
@@ -33,7 +36,7 @@ void benchmark(HNSWConfig config){
 
     if (!config.truth_path.empty())
     {
-        truth = cnpy::npy_load(config.truth_path);
+        truth = loadMatrix(config.truth_path);
         if (query.shape[0] != truth.shape[0]) {
             spdlog::error("query elements {} and ground truth elements {} doesn't match", query.shape[0], truth.shape[0]);
             exit(-1);
@@ -69,7 +72,7 @@ void benchmark(HNSWConfig config){
                                   {
                                       for (int64_t i = r.begin(); i < r.end(); i++)
                                       {
-                                          alg_hnsw->addPoint(feat.data<char *>() + config.dim * i * feat.word_size, i);
+                                          alg_hnsw->addPoint(feat.get_vec(i), i);
                                       }
                                   });
     }
@@ -82,7 +85,7 @@ void benchmark(HNSWConfig config){
     }
 
     // search kNN and evaluation
-    if (query.num_vals > 0)
+    if (query.shape[0] > 0)
     {
         int64_t num_queries = query.shape[0];
         alg_hnsw->setEf(config.ef);
@@ -94,7 +97,7 @@ void benchmark(HNSWConfig config){
                                   {
                                       for (int64_t i = r.begin(); i < r.end(); i++)
                                       {
-                                          results.at(i) = alg_hnsw->searchKnn(query.data<char *>() + i * config.dim * query.word_size, config.k);
+                                          results.at(i) = alg_hnsw->searchKnn(query.get_vec(i), config.k);
                                       }
                                   });
         timer.end();
@@ -103,7 +106,7 @@ void benchmark(HNSWConfig config){
         spdlog::info("QPS={0:.2f}", num_queries / search_time);
 
         std::vector<int> matched(num_queries);
-        auto ground_truths = std::span(truth.data<int >(), truth.num_vals);
+        auto ground_truths = span(truth.data<int >(), truth.shape[0] * truth.shape[1]);
 
         oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<int64_t>(0, num_queries),
                                   [&](const oneapi::tbb::blocked_range<int64_t> &r)
