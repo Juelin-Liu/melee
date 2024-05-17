@@ -27,15 +27,14 @@ namespace melee {
     HNSWConfig get_hnsw_config(int argc, char *argv[]) {
         HNSWConfig config;
         argparse::ArgumentParser program("HNSW profiler");
-        program.add_argument("--space").help("one of l2, ip, or l2uint8").required();
-        program.add_argument("--M").help(" maximum number of outgoing connections in the graph").scan<'i', int>().required();
-        program.add_argument("--ef_construction").help("priority queue capacity during the index construction").scan<'i', int>().required();
+        program.add_argument("--space").help("one of l2, ip, or l2uint8");
+        program.add_argument("--M").help(" maximum number of outgoing connections in the graph").scan<'i', int>().default_value(16);
+        program.add_argument("--ef_construction").help("priority queue capacity during the index construction").scan<'i', int>().default_value(200);
+        program.add_argument("--ef").help("priority queue capacity during the index construction").scan<'i', int>().default_value(100);
+        program.add_argument("--num_threads").help("capacity of the index").scan<'i', int>().default_value(1);
+        program.add_argument("--k").help("top k search index").scan<'i', int>().default_value(10);
 
-        program.add_argument("--ef").help("priority queue capacity during the index construction").scan<'i', int>().required();
-        program.add_argument("--num_threads").help("capacity of the index").scan<'i', int>().required();
-        program.add_argument("--k").help("top k search index").scan<'i', int>().required();
-
-        program.add_argument("--feat_path").help("path to the feature file").required();
+        program.add_argument("--feat_path").help("path to the feature file").default_value("");;
         program.add_argument("--index_path").help("path to the graph index file").default_value("");
         program.add_argument("--query_path").help("path to the query feature file").default_value("");
         program.add_argument("--truth_path").help("path to the ground truth file").default_value("");

@@ -76,11 +76,13 @@ void benchmark(HNSWConfig config){
                                       }
                                   });
     }
+
     timer.end();
     spdlog::info("BuildTime={} secs", timer.seconds());
 
     if (!config.index_out.empty() && config.index_path.empty())
     {
+        spdlog::info("Saving Index To: {}", config.index_out);
         alg_hnsw->saveIndex(config.index_out);
     }
 

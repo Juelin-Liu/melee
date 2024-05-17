@@ -53,7 +53,7 @@ namespace melee {
 
     struct Matrix2D {
         std::shared_ptr<MemmapContainer> mmap_data{nullptr};
-        size_t shape[2];
+        size_t shape[2]{0, 0};
         size_t word_size{0};
         DataType dtype;
 
