@@ -1,13 +1,15 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 
 project(melee)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-find_package(spdlog REQUIRED)
-find_package(TBB REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 add_subdirectory(third_party/hnswlib)
-
+add_subdirectory(third_party/spdlog)
+add_subdirectory(third_party/oneTBB)
+include_directories(third_party/spdlog/include)
+include_directories(third_party/oneTBB/include)
 add_executable(main src/hnsw_main.cc)
-
 target_link_libraries(main PRIVATE hnswlib spdlog::spdlog TBB::tbb)
