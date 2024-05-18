@@ -1,10 +1,10 @@
 #!/bin/bash
 CUR_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
-BIN=$CUR_DIR/cmake-build-release/main
+BIN=$CUR_DIR/build/main
 DATADIR=$CUR_DIR/data/datasets/bigann
-feat_path=${DATADIR}/learn.100M.u8bin
-index_out=${DATADIR}/learn_M16_ef200.index
+feat_path=${DATADIR}/base.1B.u8bin
+index_out=${DATADIR}/bigann_1B_M16_ef200.index
 
 # Build Index
 $BIN \
@@ -12,7 +12,8 @@ $BIN \
   --M 16 \
   --ef_construction 200 \
   --ef 100 \
-  --num_threads 48 \
+  --num_threads 24 \
+  --max_elements 1000000 \
   --k 10 \
   --feat_path ${feat_path} \
   --index_out ${index_out}

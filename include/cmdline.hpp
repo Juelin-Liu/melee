@@ -1,19 +1,20 @@
 #pragma once
 #include "argparse.hpp"
+
 namespace melee {
     
     struct HNSWConfig {
         // graph construction parameters:
         std::string space; // name of the space (can be one of "l2", "ip", or "cosine").
-        int64_t dim; // dimensionality of the space.
-        int64_t M; // parameter that defines the maximum number of outgoing connections in the graph.
-        int64_t ef_construction; // parameter that controls speed/accuracy trade-off during the index construction.
-        int64_t max_elements; //  capacity of the index
+        size_t dim; // dimensionality of the space.
+        size_t M; // parameter that defines the maximum number of outgoing connections in the graph.
+        size_t ef_construction; // parameter that controls speed/accuracy trade-off during the index construction.
+        size_t max_elements; //  capacity of the index
 
         // query time parameters:
-        int64_t ef;
-        int64_t num_threads;
-        int64_t k;
+        size_t ef;
+        size_t num_threads;
+        size_t k;
 
         std::string feat_path;
         std::string index_path;
@@ -33,6 +34,7 @@ namespace melee {
         program.add_argument("--ef").help("priority queue capacity during the index construction").scan<'i', int>().default_value(100);
         program.add_argument("--num_threads").help("capacity of the index").scan<'i', int>().default_value(1);
         program.add_argument("--k").help("top k search index").scan<'i', int>().default_value(10);
+        program.add_argument("--max_elements").help("max elements in the graph").scan<'i', int>().default_value(1000000); // 1M
 
         program.add_argument("--feat_path").help("path to the feature file").default_value("");;
         program.add_argument("--index_path").help("path to the graph index file").default_value("");
@@ -50,6 +52,7 @@ namespace melee {
         config.ef = program.get<int>("--ef");
         config.num_threads = program.get<int>("--num_threads");
         config.k = program.get<int>("--k");
+        config.max_elements = program.get<int>("--max_elements");
 
         config.feat_path = program.get<std::string>("--feat_path");
         config.index_path = program.get<std::string>("--index_path");
