@@ -20,15 +20,13 @@ namespace melee {
         std::string index_path;
         std::string query_path;
         std::string truth_path;
-
         std::string index_out;
-        std::string profile_out;
     };
 
     HNSWConfig get_hnsw_config(int argc, char *argv[]) {
         HNSWConfig config;
         argparse::ArgumentParser program("HNSW profiler");
-        program.add_argument("--space").help("one of l2, ip, or l2uint8");
+        program.add_argument("--space").help("one of l2, ip, or l2uint8").required();
         program.add_argument("--M").help(" maximum number of outgoing connections in the graph").scan<'i', int>().default_value(16);
         program.add_argument("--ef_construction").help("priority queue capacity during the index construction").scan<'i', int>().default_value(200);
         program.add_argument("--ef").help("priority queue capacity during the index construction").scan<'i', int>().default_value(100);
@@ -40,9 +38,7 @@ namespace melee {
         program.add_argument("--index_path").help("path to the graph index file").default_value("");
         program.add_argument("--query_path").help("path to the query feature file").default_value("");
         program.add_argument("--truth_path").help("path to the ground truth file").default_value("");
-
         program.add_argument("--index_out").help("index output directory").default_value("");
-        program.add_argument("--profile_out").help("profile output directory").default_value("/tmp/out.log");
         program.parse_args(argc, argv);
 
         config.space = program.get<std::string>("--space");
@@ -58,9 +54,7 @@ namespace melee {
         config.index_path = program.get<std::string>("--index_path");
         config.query_path = program.get<std::string>("--query_path");
         config.truth_path = program.get<std::string>("--truth_path");
-
         config.index_out = program.get<std::string>("--index_out");
-        config.profile_out = program.get<std::string>("--profile_out");
 
         return config;
     };

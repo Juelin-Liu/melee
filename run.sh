@@ -4,7 +4,7 @@ CUR_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 BIN=$CUR_DIR/build/main
 DATADIR=$CUR_DIR/data/datasets/bigann
 feat_path=${DATADIR}/base.1B.u8bin
-index_out=${DATADIR}/bigann_1B_M16_ef200.index
+index_out=${DATADIR}/bigann_1M_M16_ef200.index
 
 # Build Index
 $BIN \

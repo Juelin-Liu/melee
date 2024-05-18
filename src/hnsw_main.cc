@@ -5,20 +5,33 @@
 #include <oneapi/tbb/parallel_for.h>
 #include <queue>
 #include <spdlog/spdlog.h>
+#include <algorithm>
 
 #include "cmdline.hpp"
 #include "dataloader.hpp"
 #include "span.hpp"
 #include "timer.hpp"
+
+#define ALWAYS_ASSERT(expr) \
+    do { \
+        if (!(expr)) { \
+            std::cerr << "Assertion failed: " #expr << std::endl; \
+            std::abort(); \
+        } \
+    } while (0)
+
+
 using namespace melee;
 template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
   typedef std::priority_queue<std::pair<dist_t, hnswlib::labeltype>> ResultType;
 
   // TODO feat, query, truth;
-  Matrix2D feat, query, truth;
-  feat = loadMatrix(config.feat_path);
-  config.max_elements = std::min(feat.shape[0], config.max_elements);
-  config.dim = feat.shape[1];
+  Matrix2D feat, query;
+  GroundTruth truth;
+  if (!config.feat_path.empty()) {
+    feat = loadMatrix(config.feat_path, config.max_elements);
+    config.dim = feat.shape[1];
+  }
 
   if (config.query_path.empty() != config.truth_path.empty()) {
     spdlog::error(
@@ -27,16 +40,12 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
   }
 
   if (!config.query_path.empty()) {
-    query = loadMatrix(config.query_path);
-    if (feat.shape[1] != query.shape[1]) {
-      spdlog::error("feature dimension {} and query dimension {} doesn't match",
-                    feat.shape[1], query.shape[1]);
-      exit(-1);
-    }
+    query = loadMatrix(config.query_path, config.max_elements);
+    config.dim = query.shape[1];
   }
 
   if (!config.truth_path.empty()) {
-    truth = loadMatrix(config.truth_path);
+    truth = loadGT(config.truth_path);
     if (query.shape[0] != truth.shape[0]) {
       spdlog::error(
           "query elements {} and ground truth elements {} doesn't match",
@@ -62,6 +71,7 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
     config.M = alg_hnsw->M_;
     config.ef_construction = alg_hnsw->ef_construction_;
   } else {
+    ALWAYS_ASSERT(!config.feat_path.empty());
     spdlog::info("Loading Data From: {}", config.feat_path);
     spdlog::info("Adding {}M points", config.max_elements / 1e6);
 
@@ -69,9 +79,9 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
         &space, config.max_elements, config.M, config.ef_construction);
 
     oneapi::tbb::parallel_for(
-        oneapi::tbb::blocked_range<int64_t>(0, config.max_elements),
-        [&](const oneapi::tbb::blocked_range<int64_t> &r) {
-          for (int64_t i = r.begin(); i < r.end(); i++) {
+        oneapi::tbb::blocked_range<size_t>(0, config.max_elements),
+        [&](const oneapi::tbb::blocked_range<size_t> &r) {
+          for (size_t i = r.begin(); i < r.end(); i++) {
             alg_hnsw->addPoint(feat.get_vec(i), i);
           }
         });
@@ -101,36 +111,59 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
         });
     timer.end();
     double search_time = timer.seconds();
+    spdlog::info("Queries={}", num_queries);
     spdlog::info("SearchTime={0:.2f} secs", search_time);
     spdlog::info("QPS={0:.2f}", num_queries / search_time);
 
     std::vector<int> matched(num_queries);
-    auto ground_truths =
-        span(truth.data<int>(), truth.shape[0] * truth.shape[1]);
+    auto labels = span(truth._label, truth.shape[0] * truth.shape[1]);
+    auto distances = span(truth._label, truth.shape[0] * truth.shape[1]);
 
-    oneapi::tbb::parallel_for(
-        oneapi::tbb::blocked_range<int64_t>(0, num_queries),
-        [&](const oneapi::tbb::blocked_range<int64_t> &r) {
-          for (int64_t i = r.begin(); i < r.end(); i++) {
-            auto search_result = results.at(i);
-            auto ground_truth =
-                ground_truths.subspan(i * truth.shape[1], config.k);
-            while (!search_result.empty()) {
+    int total_matched = 0;
+    for (int i = 0; i < num_queries; i++) {
+      auto gt_labels = labels.subspan(i * truth.shape[1], config.k);
+      auto gt_distances = distances.subspan(i * truth.shape[1], config.k);
+      auto search_result = results.at(i);
+      while (!search_result.empty()) {
               auto p = search_result.top();
-              for (auto gt : ground_truth) {
-                if (gt == p.second) {
-                  matched.at(i)++;
-                  break;
-                }
-              }
+              auto pred_label = p.second;
+              auto pred_dist = p.first;
               search_result.pop();
-            }
-          }
-        });
-    int64_t total_matched =
-        std::accumulate(matched.begin(), matched.end(), 0ll);
-    double recall = 1.0 * total_matched / (config.k * num_queries);
-    spdlog::info("Recall={0:.2f}%", recall * 100);
+              
+              auto itr = std::find_if(gt_labels.begin(), gt_labels.end(), [&pred_label](uint32_t label){
+                return label == pred_label;
+              });
+              if (itr != gt_labels.end()) {
+                total_matched++;
+              } else {
+                spdlog::info("pred does not match pred_distance={} worse_distance={}", pred_dist, *(gt_distances.end()-1));
+              }
+    }
+    }
+    // oneapi::tbb::parallel_for(
+    //     oneapi::tbb::blocked_range<int64_t>(0, num_queries),
+    //     [&](const oneapi::tbb::blocked_range<int64_t> &r) {
+    //       for (int64_t i = r.begin(); i < r.end(); i++) {
+    //         auto search_result = results.at(i);
+    //         auto ground_truth =
+    //             ground_truths.subspan(i * truth.shape[1], config.k);
+    //         while (!search_result.empty()) {
+    //           auto p = search_result.top();
+    //           for (auto gt : ground_truth) {
+    //             if (gt == p.second) {
+    //               matched.at(i)++;
+    //               break;
+    //             }
+    //           }
+    //           search_result.pop();
+    //         }
+    //       }
+    //     });
+    // int64_t total_matched =
+    //     std::accumulate(matched.begin(), matched.end(), 0ll);
+
+    double recall = 100.0 * total_matched / (config.k * num_queries);
+    spdlog::info("Recall={0:.2f}%", recall);
 
     long num_upper_hops = alg_hnsw->metric_hops;
     long num_base_hops = alg_hnsw->metric_base_hops;
@@ -155,9 +188,9 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
     spdlog::info("TotalRead={0:.2f} MB", base_memory);
     spdlog::info("Throughput={0:.2f} MB/s", total_memory / search_time);
 
-    spdlog::info("QHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
-    spdlog::info("QDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
-    spdlog::info("QRead={0:.2f} MB", total_memory / query.shape[0]);
+    spdlog::info("PerQueryHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
+    spdlog::info("PerQueryDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
+    spdlog::info("PerQueryRead={0:.2f} MB", total_memory / query.shape[0]);
   }
 }
 
@@ -165,6 +198,7 @@ int main(int argc, char *argv[]) {
   HNSWConfig config = get_hnsw_config(argc, argv);
   oneapi::tbb::global_control global_limit(
       oneapi::tbb::global_control::max_allowed_parallelism, config.num_threads);
+  spdlog::info("NThreads={}", config.num_threads);
   if (config.space == "ip") {
     benchmark<hnswlib::InnerProductSpace, float>(config);
   } else if (config.space == "l2") {
