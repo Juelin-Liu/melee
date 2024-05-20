@@ -4,22 +4,21 @@
 #include <oneapi/tbb/info.h>
 #include <oneapi/tbb/parallel_for.h>
 #include <queue>
+#include <vector>
 #include <spdlog/spdlog.h>
-#include <algorithm>
 
 #include "cmdline.hpp"
 #include "dataloader.hpp"
 #include "span.hpp"
 #include "timer.hpp"
 
-#define ALWAYS_ASSERT(expr) \
-    do { \
-        if (!(expr)) { \
-            std::cerr << "Assertion failed: " #expr << std::endl; \
-            std::abort(); \
-        } \
-    } while (0)
-
+#define ALWAYS_ASSERT(expr)                                                    \
+  do {                                                                         \
+    if (!(expr)) {                                                             \
+      std::cerr << "Assertion failed: " #expr << std::endl;                    \
+      std::abort();                                                            \
+    }                                                                          \
+  } while (0)
 
 using namespace melee;
 template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
@@ -114,31 +113,20 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
     spdlog::info("Queries={}", num_queries);
     spdlog::info("SearchTime={0:.2f} secs", search_time);
     spdlog::info("QPS={0:.2f}", num_queries / search_time);
-
-    std::vector<int> matched(num_queries);
-    auto labels = span(truth._label, truth.shape[0] * truth.shape[1]);
-    auto distances = span(truth._label, truth.shape[0] * truth.shape[1]);
-
     int total_matched = 0;
     for (int i = 0; i < num_queries; i++) {
-      auto gt_labels = labels.subspan(i * truth.shape[1], config.k);
-      auto gt_distances = distances.subspan(i * truth.shape[1], config.k);
       auto search_result = results.at(i);
       while (!search_result.empty()) {
-              auto p = search_result.top();
-              auto pred_label = p.second;
-              auto pred_dist = p.first;
-              search_result.pop();
-              
-              auto itr = std::find_if(gt_labels.begin(), gt_labels.end(), [&pred_label](uint32_t label){
-                return label == pred_label;
-              });
-              if (itr != gt_labels.end()) {
-                total_matched++;
-              } else {
-                spdlog::info("pred does not match pred_distance={} worse_distance={}", pred_dist, *(gt_distances.end()-1));
-              }
-    }
+        auto p = search_result.top();
+        auto pred_label = p.second;
+        auto pred_dist = p.first;
+        search_result.pop();
+        for (int j = i * truth.shape[1]; j < config.k; j++) {
+          auto t = truth._label[i];
+          if (t == pred_label)
+            total_matched++;
+        };
+      }
     }
     // oneapi::tbb::parallel_for(
     //     oneapi::tbb::blocked_range<int64_t>(0, num_queries),

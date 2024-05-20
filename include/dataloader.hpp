@@ -65,22 +65,17 @@ GroundTruth loadGT(const std::string &filename) {
   // Open the binary file
   GroundTruth ret;
   // Read number of rows and columns
-  uint32_t rows;
+  uint32_t rows, cols;
   // Read rows and cols
   file.read(reinterpret_cast<char *>(&rows), sizeof(uint32_t));
+  file.read(reinterpret_cast<char *>(&cols), sizeof(uint32_t));
   ret.shape[0] = rows;
-  ret.shape[1] = 100;
-  // if (ends_with(filename, "1B")) {
-  //   ret.shape[1] = 1000;
-  // } else {
-  //   ret.shape[1] = 1000;
-  // }
-
+  ret.shape[1] = cols;
   size_t num_elements = ret.shape[0] * ret.shape[1];
   ret._label = new uint32_t [num_elements];
   ret._distance = new float [num_elements];
-  file.read((char *)ret._label, num_elements * sizeof(uint32_t));
-  file.read((char *)ret._distance, num_elements * sizeof(float));
+  file.read(reinterpret_cast<char *>(ret._label), num_elements * sizeof(uint32_t));
+  file.read(reinterpret_cast<char *>(ret._distance), num_elements * sizeof(float));
   file.close();
   return ret;
 };
