@@ -121,34 +121,14 @@ template <typename space_t, typename dist_t> void benchmark(HNSWConfig config) {
         auto pred_label = p.second;
         auto pred_dist = p.first;
         search_result.pop();
-        for (int j = i * truth.shape[1]; j < config.k; j++) {
-          auto t = truth._label[i];
+        for (int j = 0; j < config.k; j++) {
+            auto idx = i * truth.shape[1] + j;
+          auto t = truth._label[idx];
           if (t == pred_label)
             total_matched++;
         };
       }
     }
-    // oneapi::tbb::parallel_for(
-    //     oneapi::tbb::blocked_range<int64_t>(0, num_queries),
-    //     [&](const oneapi::tbb::blocked_range<int64_t> &r) {
-    //       for (int64_t i = r.begin(); i < r.end(); i++) {
-    //         auto search_result = results.at(i);
-    //         auto ground_truth =
-    //             ground_truths.subspan(i * truth.shape[1], config.k);
-    //         while (!search_result.empty()) {
-    //           auto p = search_result.top();
-    //           for (auto gt : ground_truth) {
-    //             if (gt == p.second) {
-    //               matched.at(i)++;
-    //               break;
-    //             }
-    //           }
-    //           search_result.pop();
-    //         }
-    //       }
-    //     });
-    // int64_t total_matched =
-    //     std::accumulate(matched.begin(), matched.end(), 0ll);
 
     double recall = 100.0 * total_matched / (config.k * num_queries);
     spdlog::info("Recall={0:.2f}%", recall);

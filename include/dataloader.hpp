@@ -35,8 +35,8 @@ struct Matrix2D {
 };
 
 struct GroundTruth {
-  uint32_t *_label{nullptr};
-  float *_distance{nullptr};
+  std::vector<uint32_t > _label;
+  std::vector<float> _distance;
   size_t shape[2]{0, 0};
 };
 
@@ -72,10 +72,10 @@ GroundTruth loadGT(const std::string &filename) {
   ret.shape[0] = rows;
   ret.shape[1] = cols;
   size_t num_elements = ret.shape[0] * ret.shape[1];
-  ret._label = new uint32_t [num_elements];
-  ret._distance = new float [num_elements];
-  file.read(reinterpret_cast<char *>(ret._label), num_elements * sizeof(uint32_t));
-  file.read(reinterpret_cast<char *>(ret._distance), num_elements * sizeof(float));
+  ret._label.resize(num_elements);
+  ret._distance.resize(num_elements);
+  file.read(reinterpret_cast<char *>(ret._label.data()), num_elements * sizeof(uint32_t));
+  file.read(reinterpret_cast<char *>(ret._distance.data()), num_elements * sizeof(float));
   file.close();
   return ret;
 };

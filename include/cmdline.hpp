@@ -2,7 +2,70 @@
 #include "argparse.hpp"
 
 namespace melee {
-    
+#define ALWAYS_ASSERT(expr)                                                    \
+  do {                                                                         \
+    if (!(expr)) {                                                             \
+      std::cerr << "Assertion failed: " #expr << std::endl;                    \
+      std::abort();                                                            \
+    }                                                                          \
+  } while (0)
+
+
+    struct BuildConfig {
+        std::string space;
+        size_t M;
+        size_t ef_construction;
+        size_t max_elements;
+        std::string feat_path;
+        std::string index_path;
+        BuildConfig() = default;
+        BuildConfig(int argc, char* argv[]) {
+            Init(argc, argv);
+        };
+
+        void Init(int argc, char* argv[]) {
+            argparse::ArgumentParser program("HNSW build index binary");
+            program.add_argument("--space").help("one of l2, ip, or cosine").required();
+            program.add_argument("--M").help(" maximum number of outgoing connections in the graph").scan<'i', int>().default_value(16);
+            program.add_argument("--ef_construction").help("priority queue capacity during the index construction").scan<'i', int>().default_value(200);
+            program.add_argument("--max_elements").help("max elements in the graph").scan<'i', int>().default_value(1000000); // 1M
+            program.add_argument("--feat_path").help("path to the feature file").required();
+            program.add_argument("--index_path").help("path to the output index").required();
+            program.parse_args(argc, argv);
+            space =  program.get<std::string>("--space");
+            M = program.get<int>("--M");
+            ef_construction = program.get<int>("--ef_construction");
+            max_elements = program.get<int>("--max_elements");
+            feat_path = program.get<std::string >("--feat_path");
+            index_path = program.get<std::string >("--index_path");
+        }
+    };
+
+    struct BenchConfig {
+        std::string space;
+        std::string index_path;
+        std::string query_path;
+        std::string truth_path;
+        BenchConfig() = default;
+        BenchConfig(int argc, char* argv[]) {
+            Init(argc, argv);
+        };
+
+        void Init(int argc, char* argv[]) {
+            argparse::ArgumentParser program("HNSW benchmark program");
+            program.add_argument("--space").help("one of l2, ip, or cosine").required();
+            program.add_argument("--index_path").help("path to the index file").required();
+            program.add_argument("--query_path").help("path to the query file").required();
+            program.add_argument("--truth_path").help("path to the truth file").required();
+            program.parse_args(argc, argv);
+            space =  program.get<std::string>("--space");
+            index_path = program.get<std::string >("--index_path");
+            query_path = program.get<std::string >("--query_path");
+            truth_path = program.get<std::string >("--truth_path");
+        }
+    };
+
+
     struct HNSWConfig {
         // graph construction parameters:
         std::string space; // name of the space (can be one of "l2", "ip", or "cosine").
