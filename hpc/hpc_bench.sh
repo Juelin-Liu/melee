@@ -2,8 +2,8 @@
 
 CUR_DIR="$(dirname "$(readlink -f "$0")")"
 
-data_name=deep
-query_file=query.10k.fbin
+data_name=bigann
+query_file=query.10k.u8bin
 space=l2
 ef_construction=500
 

@@ -26,7 +26,7 @@ using namespace melee;
 template<typename space_t, typename dist_t>
 void bench(BenchConfig config) {
     typedef std::priority_queue<std::pair<dist_t, hnswlib::labeltype>> ResultType;
-    std::vector<int> all_k{10};
+    std::vector<int> all_k{1, 10, 100};
     std::vector<int> all_ef{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500};
     Matrix2D query;
     GroundTruth truth;
@@ -48,12 +48,18 @@ void bench(BenchConfig config) {
 
     // search kNN and evaluation
     const int num_queries = query.shape[0];
+    spdlog::info("Start Benchmarking");
 
     for (int k: all_k) {
         for (int ef: all_ef) {
             if (ef < k) continue;
 
             alg_hnsw->setEf(ef);
+            alg_hnsw->metric_hops = 0;
+            alg_hnsw->metric_base_hops = 0;
+            alg_hnsw->metric_distance_computations = 0;
+            alg_hnsw->metric_base_distance_computations = 0;
+
             int total_matched = 0;
             timer.start();
 
@@ -85,9 +91,9 @@ void bench(BenchConfig config) {
 //            }
             timer.end();
             double search_time = timer.seconds();
-            spdlog::info("Queries={}", num_queries);
-            spdlog::info("SearchTime={0:.2f} secs", search_time);
-            spdlog::info("QPS={0:.2f}", 1.0 * num_queries / search_time);
+            // spdlog::info("Queries={}", num_queries);
+            // spdlog::info("SearchTime={0:.2f} secs", search_time);
+            // spdlog::info("QPS={0:.2f}", 1.0 * num_queries / search_time);
 
             for (int i = 0; i < num_queries; i++) {
                 auto search_result = results.at(i);
@@ -106,7 +112,7 @@ void bench(BenchConfig config) {
             }
 
             double recall = 100.0 * total_matched / (k * num_queries);
-            spdlog::info("Recall={0:.2f}%", recall);
+            // spdlog::info("Recall={0:.2f}%", recall);
 
             long num_upper_hops = alg_hnsw->metric_hops;
             long num_base_hops = alg_hnsw->metric_base_hops;
@@ -120,23 +126,24 @@ void bench(BenchConfig config) {
             float base_memory = 1.0 * num_base_dist * query.shape[1] * query.word_size / 1e6;
             float total_memory = upper_memory + base_memory;
 
-            spdlog::info("UpperHops={}", num_upper_hops);
-            spdlog::info("BaseHops={}", num_base_hops);
+            // spdlog::info("UpperHops={}", num_upper_hops);
+            // spdlog::info("BaseHops={}", num_base_hops);
 
-            spdlog::info("UpperDist={}", num_upper_dist);
-            spdlog::info("BaseDist={}", num_base_dist);
+            // spdlog::info("UpperDist={}", num_upper_dist);
+            // spdlog::info("BaseDist={}", num_base_dist);
 
-            spdlog::info("UpperRead={0:.2f} MB", upper_memory);
-            spdlog::info("TotalRead={0:.2f} MB", base_memory);
-            spdlog::info("Throughput={0:.2f} MB/s", total_memory / search_time);
+            // spdlog::info("UpperRead={0:.2f} MB", upper_memory);
+            // spdlog::info("TotalRead={0:.2f} MB", base_memory);
+            // spdlog::info("Throughput={0:.2f} MB/s", total_memory / search_time);
 
-            spdlog::info("PerQueryHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
-            spdlog::info("PerQueryDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
-            spdlog::info("PerQueryRead={0:.2f} MB", total_memory / query.shape[0]);
+            // spdlog::info("PerQueryHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
+            // spdlog::info("PerQueryDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
+            // spdlog::info("PerQueryRead={0:.2f} MB", total_memory / query.shape[0]);
+
+            spdlog::info("k={} ef={} thops={} bhops={} tmem={:.3f}MB qps={} recall={:.1f}", k, ef, num_upper_hops / num_queries, num_base_hops / num_queries, total_memory / num_queries, int(num_queries / search_time), recall);
         }
     }
-
-
+    spdlog::info("End Benchmarking");
 }
 
 int main(int argc, char *argv[]) {

@@ -31,10 +31,10 @@ echo "space            = ${space}"
 echo "query_path       = ${query_path}"
 echo "truth_apth       = ${truth_path}"
 echo "index_path       = ${index_path}"
-echo "script           = ${work_dir}/python/bench.py"
+echo "script           = ${work_dir}/build/bench"
 echo ""
 
-python3 ${work_dir}/python/bench.py \
+${work_dir}/build/bench \
     --space $space \
     --query_path ${query_path} \
     --truth_path ${truth_path} \
