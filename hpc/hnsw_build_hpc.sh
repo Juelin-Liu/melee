@@ -7,11 +7,11 @@ data_file=base.1B.u8bin
 space=l2
 ef_construction=500
 
-RUNNER=$CUR_DIR/hpc_build_runner.sh
+RUNNER=$CUR_DIR/hnsw_build_runner.sh
 WORK_DIR=$(realpath "$CUR_DIR/../")
 DATA_DIR=$WORK_DIR/data/datasets/${data_name}
-GRAPH_DIR=$WORK_DIR/data/graphs/${data_name}
-LOG_DIR=$WORK_DIR/data/build_logs/${data_name}
+GRAPH_DIR=$WORK_DIR/data/hnsw/${data_name}
+LOG_DIR=$WORK_DIR/data/hnsw/build_logs/${data_name}
 feat_path=$DATA_DIR/${data_file}
 
 mkdir -p $GRAPH_DIR
@@ -34,7 +34,7 @@ for M in 16 32 48 64; do
         fi
 
         jobname=${data_name}_${max_elements_str}_M${M}_efcon${ef_construction}
-        index_path=$GRAPH_DIR/${jobname}.hnsw
+        index_path=$GRAPH_DIR/${jobname}.bin
         build_log=$LOG_DIR/${jobname}.log
 
         sbatch --partition=${partition} --time=${maxtime} --job-name=${jobname} --output=${build_log} --exclusive \

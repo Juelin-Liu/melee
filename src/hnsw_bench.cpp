@@ -139,8 +139,13 @@ void bench(BenchConfig config) {
             // spdlog::info("PerQueryHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
             // spdlog::info("PerQueryDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
             // spdlog::info("PerQueryRead={0:.2f} MB", total_memory / query.shape[0]);
-
-            spdlog::info("k={} ef={} thops={} bhops={} tmem={:.3f}MB qps={} recall={:.1f}", k, ef, num_upper_hops / num_queries, num_base_hops / num_queries, total_memory / num_queries, int(num_queries / search_time), recall);
+            int thops = num_upper_hops / num_queries;
+            int tdist = num_upper_dist / num_queries;
+            int bhops = num_base_hops / num_queries;
+            int bdist = num_base_dist / num_queries;
+            float tmem = total_memory / num_queries;
+            int qps = num_queries / search_time;
+            spdlog::info("k={} ef={} thops={} tdist={} bhops={} bdist={} tmem={:.3f}MB qps={} recall={:.1f}", k, ef, thops, tdist, bhops, bdist, tmem, qps, recall);
         }
     }
     spdlog::info("End Benchmarking");
