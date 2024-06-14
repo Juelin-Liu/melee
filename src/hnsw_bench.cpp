@@ -24,7 +24,7 @@ using namespace melee;
 
 
 template<typename space_t, typename dist_t>
-void bench(BenchConfig config) {
+void bench(HNSWBenchConfig config) {
     typedef std::priority_queue<std::pair<dist_t, hnswlib::labeltype>> ResultType;
     std::vector<int> all_k{1, 10, 100};
     std::vector<int> all_ef{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500};
@@ -121,39 +121,31 @@ void bench(BenchConfig config) {
             long num_upper_dist = alg_hnsw->metric_distance_computations;
             long num_base_dist = alg_hnsw->metric_base_distance_computations;
             long num_total_dist = num_upper_dist + num_base_dist;
-
-            float upper_memory = 1.0 * num_upper_dist * query.shape[1] * query.word_size / 1e6;
-            float base_memory = 1.0 * num_base_dist * query.shape[1] * query.word_size / 1e6;
-            float total_memory = upper_memory + base_memory;
-
-            // spdlog::info("UpperHops={}", num_upper_hops);
-            // spdlog::info("BaseHops={}", num_base_hops);
-
-            // spdlog::info("UpperDist={}", num_upper_dist);
-            // spdlog::info("BaseDist={}", num_base_dist);
-
-            // spdlog::info("UpperRead={0:.2f} MB", upper_memory);
-            // spdlog::info("TotalRead={0:.2f} MB", base_memory);
-            // spdlog::info("Throughput={0:.2f} MB/s", total_memory / search_time);
-
-            // spdlog::info("PerQueryHops={0:.2f}", 1.0 * num_total_hops / query.shape[0]);
-            // spdlog::info("PerQueryDist={0:.2f}", 1.0 * num_total_dist / query.shape[0]);
-            // spdlog::info("PerQueryRead={0:.2f} MB", total_memory / query.shape[0]);
+            float total_adj_mem = 1.0 * num_total_dist * sizeof(hnswlib::labeltype) / (1024 * 1024);
+            
+            float upper_dist_memory = 1.0 * num_upper_dist * query.shape[1] * query.word_size;
+            float base_dist_memory = 1.0 * num_base_dist * query.shape[1] * query.word_size;
+            float total_dist_memory = (upper_dist_memory + base_dist_memory) / (1024 * 1024);
+            
             int thops = num_upper_hops / num_queries;
             int tdist = num_upper_dist / num_queries;
             int bhops = num_base_hops / num_queries;
             int bdist = num_base_dist / num_queries;
-            float tmem = total_memory / num_queries;
+            float tdmem = total_dist_memory / num_queries;
+            float bandwidth = (total_dist_memory + total_adj_mem) / 1024 / search_time;
             int qps = num_queries / search_time;
-            spdlog::info("k={} ef={} thops={} tdist={} bhops={} bdist={} tmem={:.3f}MB qps={} recall={:.1f}", k, ef, thops, tdist, bhops, bdist, tmem, qps, recall);
+            spdlog::info("k={} ef={} thops={} tdist={} bhops={} bdist={} tdmem={:.3f}MB qps={} bandwidth={:.3f}GB/s recall={:.1f}", k, ef, thops, tdist, bhops, bdist, tdmem, qps, bandwidth, recall);
         }
     }
     spdlog::info("End Benchmarking");
 }
 
 int main(int argc, char *argv[]) {
-    BenchConfig config;
+    HNSWBenchConfig config;
     config.Init(argc, argv);
+
+    oneapi::tbb::global_control global_limit(
+    oneapi::tbb::global_control::max_allowed_parallelism, config.num_threads);
     if (config.space == "ip") {
         bench<hnswlib::InnerProductSpace, float>(config);
     } else if (config.space == "l2") {

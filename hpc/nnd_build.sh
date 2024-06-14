@@ -16,8 +16,8 @@ feat_path=$DATA_DIR/${data_file}
 mkdir -p $GRAPH_DIR
 mkdir -p $LOG_DIR
 
-for M in 16; do
-    for max_elements_str in 10M; do
+for M in 16 32 48 64; do
+    for max_elements_str in 10M 100M; do
         if [ "$max_elements_str" = "1M" ]; then
             max_elements=1000000
         elif [ "$max_elements_str" = "10M" ]; then

@@ -40,10 +40,10 @@ echo "M                = ${M}"
 echo "ef_construction  = ${ef_construction}"
 echo "feat_path        = ${feat_path}"
 echo "index_path       = ${index_path}"
-echo "script           = ${work_dir}/build/build"
+echo "script           = ${work_dir}/build/hnsw_build"
 echo ""
 
-${work_dir}/build/build \
+${work_dir}/build/hnsw_build \
 --space $space \
 --ef_construction ${ef_construction} \
 --M $M \

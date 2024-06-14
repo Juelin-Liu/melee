@@ -16,7 +16,7 @@ def load_ground_truth(file_path):
         
         return labels, distances
 
-def load_data(file_path: str, max_elements: int):
+def load_data(file_path: str, max_elements: int, as_float=True):
     # Read the binary file
     with open(file_path, 'rb') as f:
         # Read the number of rows from the first 4 bytes
@@ -30,17 +30,26 @@ def load_data(file_path: str, max_elements: int):
             queries = np.frombuffer(f.read(num_bytes), dtype=np.single)
             queries = queries.reshape((num_rows, num_cols))
             return queries
+        
         elif file_path.endswith("u8bin"):
             num_bytes = num_rows * num_cols
             queries = np.frombuffer(f.read(num_bytes), dtype=np.uint8)
             queries = queries.reshape((num_rows, num_cols))
-            return queries.astype(np.single)
+            if as_float:
+                return queries.astype(np.single)
+            else:
+                return queries
+            
         elif file_path.endswith("i8bin"):
             num_bytes = num_rows * num_cols
             queries = np.frombuffer(f.read(num_bytes), dtype=np.int8)
             queries = queries.reshape((num_rows, num_cols))
-            return queries.astype(np.single)
+            if as_float:
+                return queries.astype(np.single)
+            else:
+                return queries
         else:
             print("unsupported data format: ", file_path)
-            exit(-1)
+            return None
+            # exit(-1)
             

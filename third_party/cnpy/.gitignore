@@ -1,0 +1,11 @@
+.vscode
+.idea
+
+lib
+build
+bin
+**/build
+cmake-build-debug
+
+third_party/*
+dataset

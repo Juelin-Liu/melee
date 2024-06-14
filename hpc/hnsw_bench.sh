@@ -18,7 +18,7 @@ mkdir -p $LOG_DIR
 
 
 for M in 16 32 48 64; do
-    for max_elements_str in 10M; do
+    for max_elements_str in 10M 100M; do
         truth_path=${WORK_DIR}/data/datasets/gt/GT_${max_elements_str}/${data_name}-${max_elements_str}
         jobname=${data_name}_${max_elements_str}_M${M}_efcon${ef_construction}
         index_path=$GRAPH_DIR/${jobname}.bin

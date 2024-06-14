@@ -80,7 +80,7 @@ GroundTruth loadGT(const std::string &filename) {
   return ret;
 };
 
-Matrix2D loadMatrix(const std::string &filename, uint32_t max_elements) {
+Matrix2D loadMatrix(const std::string &filename, uint32_t max_elements, bool to_float=false) {
   std::ifstream file(filename, std::ios::binary);
 
   if (!file.is_open()) {
@@ -100,25 +100,74 @@ Matrix2D loadMatrix(const std::string &filename, uint32_t max_elements) {
   ret.shape[1] = cols;
   // Determine the type of the matrix elements from the file extension
   std::string extension = getFileExtension(filename);
+  if (to_float) {
+      ret.word_size = 4;
+      ret.dtype = DataType::Float32;
+      if (extension == "fbin") {
+          size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
+          ret._data = new unsigned char[num_bytes];
+          file.read(ret.data<char>(), num_bytes);
+          file.close();
+          return ret;
+      } else if (extension == "u8bin") {
+          size_t arr_size = ret.shape[0] * ret.shape[1];
+          std::vector<uint8_t > data(arr_size);
+          file.read((char *)data.data(), arr_size * sizeof(uint8_t));
+          file.close();
 
-  if (extension == "fbin") {
-    ret.word_size = 4;
-    ret.dtype = DataType::Float32;
-  } else if (extension == "u8bin") {
-    ret.word_size = 1;
-    ret.dtype = DataType::Uint8;
-  } else if (extension == "i8bin") {
-    ret.word_size = 1;
-    ret.dtype = DataType::Int8;
-  } else if (extension == "f16bin") {
-    ret.word_size = 2;
-    ret.dtype = DataType::Float16;
+          size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
+          ret._data = new unsigned char[num_bytes];
+          auto *ptr = reinterpret_cast<float*>(ret._data);
+          for (size_t i = 0; i < data.size(); i++){
+              ptr[i] = static_cast<float>(data.at(i));
+          }
+          return ret;
+      } else if (extension == "i8bin") {
+          size_t arr_size = ret.shape[0] * ret.shape[1];
+          std::vector<int8_t > data(arr_size);
+          file.read((char *)data.data(), arr_size * sizeof(int8_t));
+          file.close();
+
+          size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
+          ret._data = new unsigned char[num_bytes];
+          auto *ptr = reinterpret_cast<float*>(ret._data);
+          for (size_t i = 0; i < data.size(); i++){
+              ptr[i] = static_cast<float>(data.at(i));
+          }
+          return ret;
+      } else if (extension == "f16bin") {
+          size_t arr_size = ret.shape[0] * ret.shape[1];
+          std::vector<_Float16> data(arr_size);
+          file.read((char *)data.data(), arr_size * sizeof(_Float16));
+          file.close();
+
+          size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
+          ret._data = new unsigned char[num_bytes];
+          auto *ptr = reinterpret_cast<float*>(ret._data);
+          for (size_t i = 0; i < data.size(); i++){
+              ptr[i] = static_cast<float>(data.at(i));
+          }
+          return ret;
+      }
+  } else {
+      if (extension == "fbin") {
+          ret.word_size = 4;
+          ret.dtype = DataType::Float32;
+      } else if (extension == "u8bin") {
+          ret.word_size = 1;
+          ret.dtype = DataType::Uint8;
+      } else if (extension == "i8bin") {
+          ret.word_size = 1;
+          ret.dtype = DataType::Int8;
+      } else if (extension == "f16bin") {
+          ret.word_size = 2;
+          ret.dtype = DataType::Float16;
+      }
+      size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
+      ret._data = new unsigned char[num_bytes];
+      file.read(ret.data<char>(), num_bytes);
+      file.close();
+      return ret;
   }
-
-  size_t num_bytes = ret.word_size * ret.shape[0] * ret.shape[1];
-  ret._data = new unsigned char[num_bytes];
-  file.read(ret.data<char>(), num_bytes);
-  file.close();
-  return ret;
 }
 } // namespace melee

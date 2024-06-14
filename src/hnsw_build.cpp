@@ -13,7 +13,7 @@
 #include "timer.hpp"
 
 using namespace melee;
-template <typename space_t, typename dist_t> void build(BuildConfig config) {
+template <typename space_t, typename dist_t> void build(HNSWBuildConfig config) {
     typedef std::priority_queue<std::pair<dist_t, hnswlib::labeltype>> ResultType;
 
     Matrix2D feat = loadMatrix(config.feat_path, config.max_elements);
@@ -43,7 +43,7 @@ template <typename space_t, typename dist_t> void build(BuildConfig config) {
 }
 
 int main(int argc, char *argv[]) {
-    BuildConfig config;
+    HNSWBuildConfig config;
     config.Init(argc, argv);
 
     if (config.space == "ip") {

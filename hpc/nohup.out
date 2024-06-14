@@ -1,0 +1,25 @@
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 43: h}: command not found
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051652 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051660 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051668 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051676 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051684 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051692 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051700 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24
+terminate called after throwing an instance of 'std::bad_any_cast'
+  what():  bad any_cast
+/data/juelin/project/melee/hpc/hnsw_bench_runner.sh: line 42: 2051711 Aborted                 (core dumped) numactl --physcpubind=0 --membind=0 ${work_dir}/build/hnsw_bench --space $space --query_path ${query_path} --truth_path ${truth_path} --index_path ${index_path} --num_threads 24

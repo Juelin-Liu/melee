@@ -35,10 +35,12 @@ echo "space            = ${space}"
 echo "M                = ${M}"
 echo "feat_path        = ${feat_path}"
 echo "index_path       = ${index_path}"
-echo "script           = ${work_dir}/python/nnd_build.py"
+echo "script           = ${work_dir}/build/nnd_build"
 echo ""
 
-python3 ${work_dir}/python/nnd_build.py \
+# python3 ${work_dir}/python/nnd_build.py \
+
+${work_dir}/build/nnd_build \
 --space $space \
 --M $M \
 --max_elements ${max_elements} \

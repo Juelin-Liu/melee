@@ -1,6 +1,6 @@
 .. _Reader_Writer_Mutexes:
 
-Reader Writer Mutexes
+Accumulate Writer Mutexes
 =====================
 
 

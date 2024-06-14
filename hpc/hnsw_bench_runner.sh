@@ -31,14 +31,15 @@ echo "space            = ${space}"
 echo "query_path       = ${query_path}"
 echo "truth_apth       = ${truth_path}"
 echo "index_path       = ${index_path}"
-echo "script           = ${work_dir}/build/bench"
+echo "script           = ${work_dir}/build/hnsw_bench"
 echo ""
 
-${work_dir}/build/bench \
+numactl --cpunodebind=0 --membind=0 ${work_dir}/build/hnsw_bench \
     --space $space \
     --query_path ${query_path} \
     --truth_path ${truth_path} \
-    --index_path ${index_path}
+    --index_path ${index_path} \
+    --num_threads 24
 
 END=$(date +%s.%N)
 DIFF=$(echo "$END - $START" | bc)
